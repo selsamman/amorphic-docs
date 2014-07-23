@@ -1,6 +1,6 @@
 # Site title and subtitle. This is used in _includes/header.html
-title: 'jekyll-docs-template'
-subtitle: 'Painless documentation for your projects'
+title: 'Amorphic'
+subtitle: 'Isomorphic front-to-back framework for node.js and MongoDB'
 
 # Enable/show navigation. There are there options:
 #   0 - always hide
@@ -16,14 +16,14 @@ sections: [
     ['int', 'Introduction'],
     ['tut', 'Tutorial'],
     ['cfg', 'Configuration'],
-    ['typ', 'Type System']
-    ['per', 'Persistence']
+    ['typ', 'Type System'],
+    ['per', 'Persistence'],
     ['bin', 'Data Binding']
 ]
 
 # Keep as an empty string if served up at the root. If served up at a specific
 # path (e.g. on GitHub pages) leave off the trailing slash, e.g. /my-project
-baseurl: '/jekyll-docs-template'
+baseurl: '/amorphic-docs'
 
 # Dates are not included in permalinks
 permalink: none

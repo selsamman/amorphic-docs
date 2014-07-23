@@ -3,7 +3,7 @@ layout: default
 title: "Amorphic"
 ---
 
-# What is Amorphic?
+### What is Amorphic?
 
 To date web-based applications have followed one of two paradigms.  Either applications posted data to the server 
 and in response a new page was returned to the browser or a single page makes xhr calls to the server which will

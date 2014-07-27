@@ -13,12 +13,10 @@ codeurl: 'https://github.com/bruth/jekyll-docs-template'
 
 # Default categories (in order) to appear in the navigation
 sections: [
-    ['int', 'Introduction'],
-    ['tut', 'Tutorial'],
-    ['cfg', 'Configuration'],
-    ['typ', 'Type System'],
-    ['per', 'Persistence'],
-    ['bin', 'Data Binding']
+    ['config', 'Configuration & Setup'],
+    ['model', 'The Model'],
+    ['view', 'The View'],
+    ['controller', 'The Controller']
 ]
 
 # Keep as an empty string if served up at the root. If served up at a specific

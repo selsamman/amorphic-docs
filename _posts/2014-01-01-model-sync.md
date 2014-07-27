@@ -1,6 +1,6 @@
 ---
 layout: page
-title: "How Data is Synchronized"
+title: "Synchronization"
 category: model
 date: 2013-06-06 08:55:36
 order: 0

@@ -1,6 +1,7 @@
 ---
 layout: page
 title: "installation"
+category: config
 date: 2014-01-01 00:00:00
 order: 0
 ---

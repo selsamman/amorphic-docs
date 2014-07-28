@@ -39,7 +39,7 @@ You need to define what object templates belong in what document collections and
 
 ### Model, View, Controller
 
-![Model, View, Controller](/img/mvc.png)
+![Model, View, Controller](img/mvc.png)
 
 Amorphic is built on a model, view, controller paradgym
 

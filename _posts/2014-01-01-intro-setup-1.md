@@ -195,9 +195,9 @@ Mixins deal with circular references in a single file but what if you have circu
   
 Amorphic provides a solution in the form of a two-pass processing of template files:
   
-  * **Pass 1** your export property function (expected to be the same name as the file it is in) is executed and template definitions are returned and accumulated
-  * **Pass 2** If there exists an xxx_mixin export that correspondes to one of the files it is called.  In that function you can mixin properties but you cannot define new templates.  The mixin exported function is passed in an object with a property for each export that contains a further property for each template.  This allows you to reference any templates defined in the first pass.
-  
+* Pass 1 - your export property function (expected to be the same name as the file it is in) is executed and template definitions are returned and accumulated
+* Pass 2 - If there exists an xxx_mixin export that corresponds to one of the files it is called.  In that function you can mixin properties but you cannot define new templates.  The mixin exported function is passed in an object with a property for each export that contains a further property for each template.  This allows you to reference any templates defined in the first pass.
+
  
     // foo.js
     module.exports.foo = function (objectTemplate, getTemplate)

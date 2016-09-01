@@ -10,26 +10,17 @@ Amorphic is a full-stack, isomorphic framework for creating web-based applicatio
 
 The goal of Amorphic is to let you focus on the logic of your application with minimal regard for:
 
-* Where code executes - browser to server transitions are seamless
-* How data is mapped to the database - objects and their relationships persisted
-* Dealing with the DOM - two way data binding replaces traditional templates
+* Where code executes - code executes in the browser or on the server with seamless calls between the two
+* Dealing with a DB - objects and their relationships can be saved and retrieved automatically
+* How the DOM works - two way data binding means no glue code
 
-### Closely Coupled Browser and Server
+### How it works
 
-Web-based applications usually follow one of two paradigms.  Either applications posted data to the server and in response a new page was returned to the browser or a single page makes xhr calls to the server which will return data.  Amorphic is a refinement of the second paradigm for object-oriented applications.
+You define objects that live on both in the browser and on the server as part of user's session with the server.  Your object methods are defined either as executing in the browser or on the server.  You may call methods on the server from within methods on the browser. When you do so all properties are synchronized and your call is executed on the server. The upshot is that you choose where to execute your code based criteria such as speed, proximity to persistent storage or security but the structure and coding style does not have to vary (except for access to server only resources).
 
-Each instance of an object lives both in the browser and on the server.  Each method is configured to have it's implementation on the server or the browser and one can call any method without regard to where it lives. Under the covers Amorphic will setup an xhr call AND synchronize the entire object graph so that the state of your application is up-to-date before the method executes.  
+To keep track of all this you need to define your objects using Amorphic's templating system which lets you define object, their properties and relationships to other objects.  As a bonus this definition also serves as the core a database schema that is lightly augmented with an external schema file to take care of data base dependent considerations like object to table mappings and foreign keys.  You can save and and retrieve objects and their relationships to any depth with a simple call with full ACID support if Postgres is chosen as the database.
 
-The upshot is that you have to do nothing special to execute methods on the server directly from the browser and to the extent that the data you need is a
-part of your objects you need to do nothing special to pass data back and forth.
-
-As a front-to-back platform you need other tools to create functional applications:
-
-- Data binding to bind the page to and from your perfectly synchronized objects
-
-- A persistence mapper to store your objects to and fetch them from a mongoDB database
-
-- A session-based container to serve up the application and keep every user's objects independent
+Finally mapping your objects to the screen uses data-binding that is analogous to Angular except that it has tighter integration with your object definitions.  For example you can define values and descriptions for a multi-valued property as part of your object template, bind that to a select control and it will automatically populate the options.
 
 ### Cascading Persistence
 

@@ -13,11 +13,11 @@ There are two ways to get started:
 * Fork the ticket demo
 * install into an existing project
 
-The ticket demo has some ready examples complex relationships in the model so this can be a good bet for those who want to delve in quickly.  If you already know amorphic or want to take a more methodical approach or already have some existing code then installing Amorphic as an npm is best:
+The ticket demo has some ready examples of complex relationships in the model so this can be a good bet for those who want to delve in quickly.  If you already know amorphic or want to take a more methodical approach or already have some existing code then installing Amorphic as an npm is best:
 
     npm install amorphic
 
-Amorphic is based on connect middleware and it it creates an app, does everything it needs and then listens for http requests. 
+Amorphic is based on connect middleware. It creates a connect applicaiton and listens on it.  All you need in your app.js is to call amorphic:
  
     require('amorphic').listen(__dirname, sessionStore, preSessionCallback, postSessionCallback);
     
@@ -112,19 +112,26 @@ The key parts are:
 
 * **modules** - Declare node modules specifically designed for Amorphic. The specific configuration for configuring these modules depends on the module itself but all have a *requre* property to specify the directory in node_modules that is to be required.  Usually the modules will "mixin" functionality to your object model and you configure the specific object templates that these changes are to apply to.  See the readme.md of each module for more info.
 
-### Defining the Object Model
+### Defining Templates
+ 
+All code and data in amorphic is defined as object templates using Amorphic's type system.  These files reside in:
 
-The object model includes both the model and the controller since they are both objects defined using SuperType which is Amorphic's type system.  The controller has some special behaviour and is not persistent where as the model is generally persistent.  Except for daemons you define your object templates in files app/xxx/public/js and every object model must have a controller.js file that returns a controller template.  Here is the helloworld controller.js
+* **app/<appname>/public/js** - the normal place for web-based applications
+* **app/<appname>/js** - for non-interactive "batch" applications
+* **app/common/js** - if is shared accross multiple applications
+ 
+Of course you may use sub-folders to organize your templates.
+ 
+You must have a controller template defined called controller.js in one of these places. It would look someting like this:
 
+    // controller.js
     module.exports.controller = function (objectTemplate, getTemplate)
     {
-        var BaseController = getTemplate('./baseController.js').BaseController;
         var World = getTemplate('./world.js').World;
     
-        Controller = BaseController.extend({
+        Controller = objectTemplate.create("Controller", {
             worlds:        {type: Array, of: World, value: []},
-    
-            newWorld: {on: "server", body: function ()
+            createNewWorld: {on: "server", body: function ()
             {
                 this.worlds.push(new World());
             }}
@@ -133,70 +140,136 @@ The object model includes both the model and the controller since they are both 
         return {Controller: Controller};
     }
 
-and the model world.js
+Templates  are structured such that Amorphic can "include" them on both the server and browsers. The structure has these elements:
 
-    module.exports.world = function (objectTemplate, getTemplate)
-    {
-        var World = objectTemplate.create({
-            createdAt: {type: Date, rule: "datetime"},
-            init: function () {
-                this.createdAt = new Date();
-            }
-        });
-        return {World: World}
-    }
+* You export a property, controller in the above example that must match the name of the containing javascript file that is a function that Amorphic will call to create the templates for a particular user session.  This function is passed:
 
-
-All object model files are structured such that Amorphic can "include" them on both the server and browsers.  In the future there will be a method to have templates defined only on the server but for now everything is isomorphic.  The templates chapter covers the type system in detail but here we clarify how the files must be structured such that Amorphic and manage your object model for you.
-
-The structure has these elements:
-
-* You export a property *controller* that must match the name of the containing javascript file.  This let's Amorphic know where to get your template definition function when it includes your file and also ensures that when executed in the browser each file will return a unique export. 
-
-* The template definition function is executed by Amorphic to create your object templates which are akin to classes in a classical OO language. Each session effectively has it's own private set of templates instances such that when you do new XXX() you can be sure that the object created will be connected to your session.  Two parameters are passed in:
-
-  * objectTemplate - the factory from which you create templates
-  * getTemplate - function that you use in place of *requre* to include other object model files
+  * objectTemplate - a factory object which you can use to create templates (Controller = objectTemplate.create("Controller", {})
+  * getTemplate - a function that you use in place of *requre* to include other template files (var World = getTemplate('./world.js').World)
   
-* You can return as many templates as you like in an associative array. Here we are return just one.
+* The function returns an object with a property for each template defined in the file (return {Controller: Controller}) You can define and return multiple templates.
+ 
+This structure allows each session to have it's own private set of templates instances such that when you do new Controller() you can be sure that the object created will be connected to your session. 
 
 ### Circular References
 
 Robust object models often have circular references.  Within a template file this can be accomplished using objectTemplate.mixin:
  
-    var Foo = objectTemplate.create("Foo", {
-        foo1: {type: Number}
-        
-    });
-    var Bar = objectTemplate.create("Bar", {
-        foo: {type: Foo}
-    });
-    Foo.mixin({
-        bar: {type: Bar}
-    });
+    // foobar.js
+    module.exports.foobar = function (objectTemplate, getTemplate) {
+        var Foo = objectTemplate.create("Foo", {
+            count: {type: Number}
+        });
+        var Bar = objectTemplate.create("Bar", {
+            foo: {type: Foo}
+        });
+        Foo.mixin({
+            bar: {type: Bar}
+        });
+        return{
+            Foo: Foo,
+            Bar: Bar
+        }
+    }
+    
+Because your model may grow later and end up with circular references an alternative is to use mixins for everything.
  
-If you have files that require each other Amorphic provides a solution in the form of a two-pass processing of the object model.  The first pass starts with your controller and then processes all of your templates by calling the function exported with the same name as the file being included.  (e.g. module.export.controller).  After that it looks for exports with the same name but with _mixin (e.g. module.export.controller_mixin) and calls that function.  The mixin function  
+    // foobar.js
+    module.exports.foobar = function (objectTemplate, getTemplate) {
+        var Foo = objectTemplate.create("Foo", {});
+        var Bar = objectTemplate.create("Bar", {});
+        Foo.mixin({
+             count: {type: Number}
+             bar: {type: Bar}
+        });
+        Bar.mixin({
+             foo: {type: Foo}
+        });
+        return{
+            Foo: Foo,
+            Bar: Bar
+        }
+    }
+
+Mixins deal with circular references in a single file but what if you have circular references across files.  Amorphic provides a solution in the form of a two-pass processing of the object model.  The first pass starts with your controller and then processes all of your templates by calling the function exported with the same name as the file being included.  (e.g. module.export.controller).  After that it looks for exports with the same name but with _mixin (e.g. module.export.controller_mixin) and calls that function.  The mixin function is passed in an object with a property for each export that contains a further property for each template.  This allows you to reference any templates defined in the first pass.  H 
  
     // foo.js
     module.exports.foo = function (objectTemplate, getTemplate)
     {
         var Foo = objectTemplate.create("Foo", {
-            foo1: {type: Number}
-            
+            count: {type: Number}
         });
+        return{
+            Foo: Foo,
+        }
     }
- 
-    // bar.js
-    module.exports.Foo_mixins = function (objectTemplate, requires)
+    module.exports.foo_mixins = function (objectTemplate, requires)
     {
         var Bar = requires.foo.Foo;
         var Foo = requires.bar.Bar;
-     
         Foo.mixin({
             bar: {type: Bar}
         });
     }
     
+    // bar.js
+    module.exports.foo = function (objectTemplate, getTemplate)
+    {
+        var Foo = getTemplate('bar.js');
+        var Bar = objectTemplate.create("Bar", {});
+        return {
+            foo: Foo,
+        }
+    }
+    
+    
+Which leads us to the final recommended pattern. Amorphic passes a third parameter to your exports.  In your exports it passes in a uses  Keep your templates in individual files and *always* use the exports mixins pattern to populate them.  You can optionally use the with statement to avoid redecaring them:
+
+
+    // foo.js
+    module.exports.foo = function (objectTemplate, getTemplate, uses)
+    {
+      uses("bar.js");
+      return {
+          Foo: objectTemplate.create("Foo", {})
+      }
+    }
+    module.exports.boo_mixins = function (objectTemplate, requires, templates)
+    {
+      with (templates) {
+    
+          Foo.mixin({
+              init: function () {
+                  this.bar = new Bar();
+              },
+              count: {type: Number},
+              bar: {type: Bar}
+          });
+    
+      }
+    }
+    
+    // bar.js
+    module.exports.bar = function (objectTemplate, getTemplate, uses)
+    {
+        uses('foo.js');
+        return {
+            Bar: objectTemplate.create("Bar", {})
+        }
+    }
+    module.exports.bar_mixins = function (objectTemplate, requires, templates)
+    {
+        with (templates) {
+            Bar.mixin({
+                init: function () {
+                    this.foo = new Foo();
+                },
+                foo: {type: Foo}
+            });
+        }
+    }
+
+
 ### Including server files
  
 You may include files only on the server in template definitions by using require.  However be sure to test to see that require exists since the same template definitions are included on the client.

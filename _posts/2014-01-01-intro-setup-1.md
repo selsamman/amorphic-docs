@@ -166,7 +166,7 @@ Robust object models often have circular references.  Within a template file thi
         Foo.mixin({
             bar: {type: Bar}
         });
-        return{
+        return {
             Foo: Foo,
             Bar: Bar
         }
@@ -191,7 +191,13 @@ Because your model may grow later and end up with circular references an alterna
         }
     }
 
-Mixins deal with circular references in a single file but what if you have circular references across files.  Amorphic provides a solution in the form of a two-pass processing of the object model.  The first pass starts with your controller and then processes all of your templates by calling the function exported with the same name as the file being included.  (e.g. module.export.controller).  After that it looks for exports with the same name but with _mixin (e.g. module.export.controller_mixin) and calls that function.  The mixin function is passed in an object with a property for each export that contains a further property for each template.  This allows you to reference any templates defined in the first pass.  H 
+Mixins deal with circular references in a single file but what if you have circular references across files?
+  
+Amorphic provides a solution in the form of a two-pass processing of template files:
+  
+  * **Pass 1** your export property function (expected to be the same name as the file it is in) is executed and template definitions are returned and accumulated
+  * **Pass 2** If there exists an xxx_mixin export that correspondes to one of the files it is called.  In that function you can mixin properties but you cannot define new templates.  The mixin exported function is passed in an object with a property for each export that contains a further property for each template.  This allows you to reference any templates defined in the first pass.
+  
  
     // foo.js
     module.exports.foo = function (objectTemplate, getTemplate)

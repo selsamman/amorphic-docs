@@ -231,7 +231,7 @@ This allows you to reference any templates defined in the first pass.
     }
     
     
-Which leads us to the final recommended pattern. Amorphic passes a third parameter to your exports.  In your exports it passes in a uses  Keep your templates in individual files and *always* use the exports mixins pattern to populate them.  You can optionally use the with statement to avoid redecaring them:
+Which leads us to the final recommended pattern. Amorphic passes a third parameter to your exports.  In your main exports it passes the third parameter which is very similar to the getTemplate except that it ignores circular references rather than throwing an error.  This allows you to reference all required templates without worrying about circular references.  In the mixin export it also passes in a third parameter which is a flattened verion of your list of exports (requires) that has a property for each template.  This allows you to use the with statement scope all templates.  Therefore the recommended pattern is to define all your templates in the first pass and enrich them with properties using mixin in the second pass:
 
 
     // foo.js

@@ -32,7 +32,23 @@ Note that **preSessionCallback** and **postSessionCallback** not normally needed
 
 ### Global config.json
 
-In the root of your project there is a config.json file which represents the "global" configuration for your applications.
+In the root of your project there is a **config.json** file which represents the "global" configuration for all applications:
+* **conflictMode** - Whether to data synchronization vs only message synchronization is enabled.  Defaults to 'soft'.  Every data value transmitted when synchronizing between the browser and server is sent in two parts - the expected current value and the new value.  If the expected current value is incorrect a warning is generated (conflictMode 'soft') or an error is generated (conflictMode 'hard')
+* **compressSession** if set to true session data is compressd before being serialized.  This makes storage smaller but adds time to each server call
+* **compressXHR** if set to true the server responses are compressed
+* **sourceMode** Whether source files are to minified 'prod' or left as is 'debug'
+
+Anything you specify in config.json can also be specified as a starting parameter to node.js
+
+In addition there is a configuration file for each application in the app directory which contains:
+* **port** - the port you want to listen on
+* **sessionSeconds** - how long before a session expires (in seconds)
+* **objectCacheSeconds** - how long to keep your objects cached
+* **sessionSecret** - a random string for hashing sessions
+* **applications** - list your applications and their root directories here
+* **application** - the default application
+
+Example:
 
     {
         "port": 3001,
@@ -42,19 +58,8 @@ In the root of your project there is a config.json file which represents the "gl
         "applications" : {"ticket": "apps/ticket"},
         "application"  : "ticket"
     }
-    
-The elements are as follows:
 
-* **port** - the port you want to listen on
-* **sessionSeconds** - how long before a session expires (in seconds)
-* **objectCacheSeconds** - how long to keep your objects cached
-* **sessionSecret** - a random string for hashing sessions
-* **applications** - list your applications and their root directories here
-* **application** - the default application
-
-Anything you specify in config.json can also be specified as a starting parameter to node.js so you can use config.json and is also available to your application.
-
-### Background Tasks
+### Daemons (background tasks)
  
 Sometimes you need things running on the server that are not related to a browser session.  To do that include this in your config.json file:
  
@@ -82,4 +87,4 @@ Your controller will be created immediately upon startup and the serverInit func
 
  You can also listen on any port at this point but you don't have access to the main server that is listening for http requests from the browser.
  
- At present deamons are executed on the same thread as the main application.  The thinking is that in a production environment you would probably deploy them separately on separate node.js processes.  You can control what gets started by overriding the applications property of your config.json with an environment variable or node.js startup parameter.
+ At present daemons are executed on the same thread as the main application.  The thinking is that in a production environment you would probably deploy them separately on separate node.js processes.  You can control what gets started by overriding the applications property of your config.json with an environment variable or node.js startup parameter.

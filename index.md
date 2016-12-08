@@ -6,12 +6,12 @@ category: "config"
 
 ### Welcome to Amorphic
 
-Amorphic is a full-stack, isomorphic framework for creating web-based applications with Node.js and MongoDb.
+Amorphic is a full-stack, isomorphic framework for creating web-based applications with Node.js.
 
 The goal of Amorphic is to let you focus on the logic of your application with minimal regard for:
 
 * Where code executes - code executes in the browser or on the server with seamless calls between the two
-* Dealing with a DB - objects and their relationships can be saved and retrieved automatically
+* Dealing with a DB - objects and their relationships can be saved and retrieved automatically. Both MongoDB and databases supported by knex (e.g. Postgres) can be used
 * How the DOM works - two way data binding means no glue code
 
 ### How it works
@@ -43,8 +43,12 @@ These Amorphic components support this structure:
 
 * **Persistor** - Is the Object Relational Mapper (or non-relational in the case of MongoDB) that persists your data and manages it's retrieval. 
 
-### Session Oriented
+### Stateful Sessions
  
- Each web browser session gets it's own session and it's own "object space".  There are no objects that are shared between sessions.  Amorphic manages sessions using Connect and it's session semantics.  This means that if you configure Redis as your session store you can load balance across multiple servers.  Amorphic is optimized for sticky sessions.  
+ Each web browser session gets it's own session on the server with and it's own "object space".  There are no objects that are shared between sessions.  Amorphic manages sessions using Connect and it's session semantics.  This means that if you configure Redis as your session store you can load balance across multiple servers.  Amorphic is optimized for sticky sessions.  
+ 
+ ### Applicablity ###
+ 
+ Because Amorphic is stateful and instantiates your full application on the server and the browser it is less suitable for highly scalable applications.  The tradeoff is between ease of development vs performance Amorphic prioritizes ease of development over resource efficiency.  
   
 

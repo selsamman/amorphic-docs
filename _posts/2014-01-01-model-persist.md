@@ -83,8 +83,11 @@ To save an object to the database use the save()  method that is injected into e
 
     ticket.save({options}).then(function () { post-save code })
 The save options are:
-* **transaction** for databases that provide transactions, a transaction that was started by the objectTemplate.begin() call.  Note that if you don't specify a transaction and a default transaction was started the default transaction is used:
+
+* **transaction** for databases that provide transactions, a transaction that was started by the objectTemplate.begin() call.  Note that if you don't specify a transaction and a default transaction was started the default transaction is used
+
 * **cascadeDocument** for databases that are not document-centric (e.g other than mongoDB), indicates that the document structure in the schema is to be used to ensure that all objects in the document are saved
+
 * **logger** you may pass in a supertype logger created by objectTemplate.createLogger() or createChildLogger that will be used to log any data.  Usually you create a child logger and pass in context information you want logged.
 
 Although a promise is returned the code may be executed **before** the data is actually saved if the save is in the context of a transaction.  With transactions all database updates occure when you execute objectTemplate.end().  So if a transaction is specified or a default transaction exists, the save will actually defere the save until objectTemplate.end()
@@ -105,14 +108,22 @@ Data is fetch with the fetch() method which is injected into every template.
 
     <template>.fetch({options}).then(function(results) {});
 
-These options can be used
+These options can be used:
+
 * **query** results will contain an array of objects that meet the query constraints.  The query may be a MongoDB query string (a subset of which is supported in SQL-based databases) or for knex-based database a callback that is passed the knex object and can support the knex-based functions to create complex queries.
+
 * **id** results will contain a single object.  The database id is passed here (retrieved from the _id property of a saved object).  **id** and **query** are mutually exclusive.
+
 * **fetch** a specification identical to the fetch parameter when defining templates or the fetch option in the schema which specifies whether or not to also fetch related objects.
+
 * **start** the zero-based offset of the first object in the result set to be returned
+
 * **limit** the maximum number of objects to be returned
+
 * **order** a set of property names whose value is -1 to indicated sorting down and +1 to indicate sorting up.  The set is ordered in terms of precedence (e.g. {mostImportantProp: 1, secondary: 1})  
+
 * **transient** a boolean that specifies that the results are not to take up space in the session (does not apply to daemons).  This both prevents the data form being transported to the browser and allows the object to be garbage collected at the end of a server call.
+
 * **logger** you may pass in a supertype logger created by objectTemplate.createLogger() or createChildLogger that will be used to log any data.  Usually you create a child logger and pass in context information you want logged.
 
 Examples:
@@ -157,8 +168,9 @@ There are times when code in the browser wants to fetch related objects that wer
     
 For every reference to a persistent template Amorphic will add two additional member functions that can facilitate fecthing form the browser:
 
-* xxxGet() where xxx is the property name (rolesGet in the above example). This will fire a call to the server xxxFetch() to retrieve the related object if the call has not already been fired.  This is a synchronous call designed to be embedded in HTML using Bindster.  After firing the call it returns either a null value or empty array depending on whether this is a scalar or array reference.  You use it to defer displaying the object until it is fetched.  If you call it again and the data has made it's way back to the browser the data will be returned.  Since pages are generally re-rendered any time a server call is completed (including the xxxFetch), the data will be displayed on the next render cycle.
-* xxxFetch() where xxx is the property name (rolesGet in the above example) fetches the data.  Generally it is only used automatically with xxxGet.  In Javascript you would use <object>.get() which is asynchronous
+* **xxxGet()** where xxx is the property name (rolesGet in the above example). This will fire a call to the server xxxFetch() to retrieve the related object if the call has not already been fired.  This is a synchronous call designed to be embedded in HTML using Bindster.  After firing the call it returns either a null value or empty array depending on whether this is a scalar or array reference.  You use it to defer displaying the object until it is fetched.  If you call it again and the data has made it's way back to the browser the data will be returned.  Since pages are generally re-rendered any time a server call is completed (including the xxxFetch), the data will be displayed on the next render cycle.
+
+* **xxxFetch()** where xxx is the property name (rolesGet in the above example) fetches the data.  Generally it is only used automatically with xxxGet.  In Javascript you would use <object>.get() which is asynchronous
 
 Example:
      
@@ -180,9 +192,13 @@ Persistor uses a form of optimistic locking as follows:
  * Every update is subject to query that tests to see that _sequence has the same value as when the data was originally retrieved.  If this has changed an 'Update Conflict' exception is thrown.
   
  * The update conflict is caught for online applications (not daemons) and handled as follows:
+ 
     * the data in the session is restored to it's value at the start of the server call
+    
     * the preServer method of the controller is called if present.  This code should refresh all persistent data
+    
     * the changes from the browser are then applied
+    
     * then with everything up-to-date the original method is called and absent any other intervening updates form another session should succeed.
     This is retried 5 times.
   

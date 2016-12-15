@@ -79,18 +79,19 @@ A few notes on using schemas
 
 ### Saving
 
-To save an object to the database use the save()  method that is injected into every object:
+To save an object to the database use the save() method.
 
     ticket.save({options}).then(function () { post-save code })
+
 The save options are:
 
-* **transaction** for databases that provide transactions, a transaction that was started by the objectTemplate.begin() call.  Note that if you don't specify a transaction and a default transaction was started the default transaction is used
+* **transaction** for databases that provide transactions, a transaction that was returned by the objectTemplate.beginTransaction.  Note that if you don't specify a transaction and a default transaction was started by calling objectTemplate.beginDefaultTransaction(), the default transaction is used.  With a transaction the save is deferred until you call objectTemplate.commit().
 
-* **cascadeDocument** for databases that are not document-centric (e.g other than mongoDB), indicates that the document structure in the schema is to be used to ensure that all objects in the document are saved
+* **cascadeDocument** for databases that are not document-centric (e.g other than mongoDB), indicates that the document structure in the schema is to be used to ensure that all objects in the document are saved.  In the case of MongoDB all sub-documents are saved automatically.
 
 * **logger** you may pass in a supertype logger created by objectTemplate.createLogger() or createChildLogger that will be used to log any data.  Usually you create a child logger and pass in context information you want logged.
 
-Although a promise is returned the code may be executed **before** the data is actually saved if the save is in the context of a transaction.  With transactions all database updates occure when you execute objectTemplate.end().  So if a transaction is specified or a default transaction exists, the save will actually defere the save until objectTemplate.end()
+Although a promise is returned from save(), the promise will be resolved **before** the data is actually written if the save is in the context of a transaction.  If no in the context of transaction the promise is resolved once the data is written.  If you need to execute code within the context of a transaction after everything is commited use the promise returned from objectTemplate.commit().  
    
 When you save an object, Persistor will ensure that all foreign keys are inserted to maintain the same relationships in the database that you haved defined in memory.  Specifically this means:
   
@@ -104,7 +105,7 @@ Knowing what to save does involve some knowledge of the document/sub-document re
 
 ### Fetching 
 
-Data is fetch with the fetch() method which is injected into every template.
+Data is read from the database with the fetch() method on the template.
 
     <template>.fetch({options}).then(function(results) {});
 
@@ -122,7 +123,7 @@ These options can be used:
 
 * **order** a set of property names whose value is -1 to indicated sorting down and +1 to indicate sorting up.  The set is ordered in terms of precedence (e.g. {mostImportantProp: 1, secondary: 1})  
 
-* **transient** a boolean that specifies that the results are not to take up space in the session (does not apply to daemons).  This both prevents the data form being transported to the browser and allows the object to be garbage collected at the end of a server call.
+* **transient** a boolean that specifies that the results are not to take up space in the session (does not apply to daemons).  This both prevents the data form being transported to the browser and allows the object to be garbage collected at the end of a server call. This applies to all objects included sub-ordinate objects fetched as well.
 
 * **logger** you may pass in a supertype logger created by objectTemplate.createLogger() or createChildLogger that will be used to log any data.  Usually you create a child logger and pass in context information you want logged.
 
@@ -222,4 +223,4 @@ MongoDB does not have a concept of transactions and it's atomicity is limited to
     
 To commit the transaction
 
-    objectTemplate.end(transaction).then({post commit code});
+    objectTemplate.commit(transaction).then({post commit code});

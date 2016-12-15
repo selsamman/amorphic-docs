@@ -87,7 +87,7 @@ The save options are:
 
 * **transaction** for databases that provide transactions, a transaction that was returned by the objectTemplate.beginTransaction.  Note that if you don't specify a transaction and a default transaction was started by calling objectTemplate.beginDefaultTransaction(), the default transaction is used.  With a transaction the save is deferred until you call objectTemplate.commit().
 
-* **cascadeDocument** for databases that are not document-centric (e.g other than mongoDB), indicates that the document structure in the schema is to be used to ensure that all objects in the document are saved.  In the case of MongoDB all sub-documents are saved automatically.
+* **cascade** for databases that are not document-centric (e.g other than mongoDB), indicates that the document structure in the schema is to be used to ensure that all objects in the document are saved.  They are saved only if setChanged() is called on the object.  In the case of MongoDB all sub-documents are saved automatically.
 
 * **logger** you may pass in a supertype logger created by objectTemplate.createLogger() or createChildLogger that will be used to log any data.  Usually you create a child logger and pass in context information you want logged.
 

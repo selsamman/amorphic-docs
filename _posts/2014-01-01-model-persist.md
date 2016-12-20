@@ -23,7 +23,7 @@ Persistor stores objects in a database and retrieves them.  I manages one-to-one
     * managing update conflicts
 # Defining templates
 
-Individual template properties have these special options:
+Individual template properties have these special options for persistance:
 * **persist** a boolean value that defaults to true indicating whether or not the property should be saved to the database
 * **fetch** when applied to a reference to another templated object, indicates whether or not the referenced object should be fetched automatically. See cascading below.
 * **notnull** a boolean that when true indicates that the property must be not-null at the time the object is saved to the database
@@ -59,17 +59,33 @@ You need a schema to tell Persistor how to map your object templates to collecti
         }
     }
 
-The schema is an object where each property must the same name as you used when creating the object template.
+The schema is an object where each first-level property is the name of a template as you specified when creating the template.
 
-	var Ticket = objectTemplate.create("Ticket", {property definitions ....}};
+	var Ticket = objectTemplate.create({name: "Ticket"}, {property definitions ....}};
 	
 The schema entry for each object template contains:
 	
 * **documentOf** or **subDocumentOf** - the name of the collection this object template belongs to either as the main document or the sub-document.  When using a SQL-based database the documentOf let's you treat a group of templates as a collection for the purpose of saving them all as a group.
 
-* **children** a list of the properties you have that reference arrays of objects that are part of another collection.  In other words your one-to-many relationships.  There is no need to mention references to sub-documents.  You specify the name of the id property that will be used in the reference to tie it to this object
+* **children** an object with a proporty for each one-to-many relationships to other templates with subordinate properties:
 
-* **parents** a list of properties you have that reference individual objects in another collection.  In other words your many-to-one or one-to-one references.  Again there is no need to reference sub-documents and you specifiy the name of the id property that be used in this object to refer to the foreign object.
+    * **id** to define a column that will form the relationship.  This column is automatically added to the child table.
+     
+    * **fetch** an parameter that specifies whether the parent should automatically be fetched (see cascade below).
+   
+  There is no need to reference parents in the same document when using a document-centric database such as MongoDB.  Here is the template property for ticketItem of the Ticket template that corresponds to the schema above:
+  
+        ticketItem: {type: Array, of: TicketItem}
+
+* **parents** an object with a property for each one-to-one relationship defined in the template with a subordinate properties:
+
+    * **id** to define a column that will form the relationship.  This column is automatically added to the table of the template containing the reference to the parent.
+     
+    * **fetch** an parameter that specifies whether the parent should automatically be fetched (see cascade below)
+     
+  There is no need to reference parents in the same document when using a document-centric database such as MongoDB.  Here is the template property for the creator property of the TicketItem template that corresponds to the schema above:
+   
+        creator: {type: Ticket}
 
 A few notes on using schemas
 
@@ -87,7 +103,7 @@ The save options are:
 
 * **transaction** for databases that provide transactions, a transaction that was returned by the objectTemplate.beginTransaction.  Note that if you don't specify a transaction and a default transaction was started by calling objectTemplate.beginDefaultTransaction(), the default transaction is used.  With a transaction the save is deferred until you call objectTemplate.commit().
 
-* **cascade** for databases that are not document-centric (e.g other than mongoDB), indicates that the document structure in the schema is to be used to ensure that all objects in the document are saved.  They are saved only if setChanged() is called on the object.  In the case of MongoDB all sub-documents are saved automatically.
+* **cascade** for SQL databases, a true value indicates that all related objects that are in the same document (have same documentOf, subDocumentOf values in the schema) are also to be save.  This is only applicable to non-daemon (e.g. online) applications that have a change mechanism as this will only save objects that have been modified. Only the online applications have a mechanism to detect changes. With Daemon applications you need to save each object that you modify. With MongoDB all sub-documents are saved automatically.
 
 * **logger** you may pass in a supertype logger created by objectTemplate.createLogger() or createChildLogger that will be used to log any data.  Usually you create a child logger and pass in context information you want logged.
 
@@ -107,25 +123,31 @@ Knowing what to save does involve some knowledge of the document/sub-document re
 
 Data is read from the database with the fetch() method on the template.
 
-    <template>.fetch({options}).then(function(results) {});
+    <template>.fetchById(query, {options}).then(function(result) {});
 
-These options can be used:
+    <template>.fetch(query, {options}).then(function(result) {});
+
+The parameters are:
 
 * **query** results will contain an array of objects that meet the query constraints.  The query may be a MongoDB query string (a subset of which is supported in SQL-based databases) or for knex-based database a callback that is passed the knex object and can support the knex-based functions to create complex queries.
 
 * **id** results will contain a single object.  The database id is passed here (retrieved from the _id property of a saved object).  **id** and **query** are mutually exclusive.
 
-* **fetch** a specification identical to the fetch parameter when defining templates or the fetch option in the schema which specifies whether or not to also fetch related objects.
+* **options** an object with properties representing the various options:
 
-* **start** the zero-based offset of the first object in the result set to be returned
+    * **fetch** a specification identical to the fetch parameter when defining templates or the fetch option in the schema which specifies whether or not to also fetch related objects.
+    
+    * **start** the zero-based offset of the first object in the result set to be returned
+    
+    * **limit** the maximum number of objects to be returned
+    
+    * **order** a set of property names whose value is -1 to indicated sorting down and +1 to indicate sorting up.  The set is ordered in terms of precedence (e.g. {mostImportantProp: 1, secondary: 1})  
+    
+    * **transient** if set to true, the results are not to take up space in the session (does not apply to daemons).  This both prevents the data form being transported to the browser and allows the object to be garbage collected at the end of a server call. This applies to all objects included sub-ordinate objects fetched as well.
+    
+    * **logger** you may pass in a supertype logger created by objectTemplate.createLogger() or createChildLogger that will be used to log any data.  Usually you create a child logger and pass in context information you want logged.
 
-* **limit** the maximum number of objects to be returned
-
-* **order** a set of property names whose value is -1 to indicated sorting down and +1 to indicate sorting up.  The set is ordered in terms of precedence (e.g. {mostImportantProp: 1, secondary: 1})  
-
-* **transient** a boolean that specifies that the results are not to take up space in the session (does not apply to daemons).  This both prevents the data form being transported to the browser and allows the object to be garbage collected at the end of a server call. This applies to all objects included sub-ordinate objects fetched as well.
-
-* **logger** you may pass in a supertype logger created by objectTemplate.createLogger() or createChildLogger that will be used to log any data.  Usually you create a child logger and pass in context information you want logged.
+* **result(s)** either an array of results (fetch) or an individual result (fetchById)
 
 Examples:
 
@@ -133,9 +155,9 @@ Examples:
         console.log(customers[0].firstName);
     });
 
-    Workflow.fetch({id: this.workflowId}).then (....)
+    Workflow.fetchById(this.workflowId).then (....)
     
-    Workflow.fetch({id: this.workflowId, fetch: {conversations: true}).then (....)
+    Workflow.fetchById(this.workflowId, {fetch: {conversations: true}).then (....)
 
 If you already have an object and it references other objects that were not automatically fetched via the fetch parameter you can fetch them with
 
@@ -147,7 +169,7 @@ Examples:
  
     customer.fetch({fetch: {policies: {owner: true}}}).then (....)
     
-### Cascading
+### Fetch Cascading
 
 When you have a reference to another object in the schema you can have Persistor automatically fetch that reference even if it is another document by applying the **fetch** option in one of these three ways:
 

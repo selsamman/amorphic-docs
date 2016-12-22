@@ -1,6 +1,6 @@
 # Site title and subtitle. This is used in _includes/header.html
 title: 'Amorphic'
-subtitle: 'Isomorphic front-to-back framework for node.js and MongoDB'
+subtitle: 'A persistent isomorphic front-to-back framework for node.js'
 
 # Enable/show navigation. There are there options:
 #   0 - always hide

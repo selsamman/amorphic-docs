@@ -62,7 +62,9 @@ The key parts are:
 
 * **createControllerFor** - Because Amorphic needs to create a controller as the backbone of any browser session you may not always want to do this if the user is simply visiting static marketing pages. createControllerFor is a RegEx string that is matched against the URL to determine if a controller should be created.  Generally you will make it something that will match everything (like .*) if you always want to have a session or something that will match nothing (like #) if you don't want to create a session until the broswer first makes an explicit request of the server.
 
-* **modules** - Declare node modules specifically designed for Amorphic. The specific configuration for configuring these modules depends on the module itself but all have a *requre* property to specify the directory in node_modules that is to be required.  Usually the modules will "mixin" functionality to your object model and you configure the specific object templates that these changes are to apply to.  See the readme.md of each module for more info.
+* **modules** - Declare node modules specifically designed for Amorphic. The specific configuration for configuring these modules depends on the module itself but all have a **require** property to specify the directory in node_modules that is to be required.  Usually the modules will "mixin" functionality to your object model and you configure the specific object templates that these changes are to apply to.  See the readme.md of each module for more info.
+
+* **controller** - The file name for the root file which must contain a template called Controller.  The convention is to specify Controller.js here. 
 
 ### Defining Templates
  
@@ -74,22 +76,16 @@ All code and data in amorphic is defined as object templates using Amorphic's ty
  
 Of course you may use sub-folders to organize your templates.
  
-You must have a controller template defined called controller.js in one of these places. It would look something like this:
+You must have a controller file which would look something like this:
 
-    // controller.js
-    module.exports.controller = function (objectTemplate, getTemplate)
-    {
-        var World = getTemplate('./world.js').World;
-    
+    // Controller.js
+    module.exports.Controller = function (objectTemplate, uses)
+        var Model = uses('model.js', 'Model');
+    {    
         Controller = objectTemplate.create("Controller", {
-            worlds:        {type: Array, of: World, value: []},
-            createNewWorld: {on: "server", body: function ()
-            {
-                this.worlds.push(new World());
-            }}
-    
+            model: {type: Model}
+            clientInit: function () {this.model = new Model()}
         });
-        return {Controller: Controller};
     }
 
 Templates  are structured such that Amorphic can "include" them on both the server and browsers. The structure has these elements:
@@ -97,15 +93,16 @@ Templates  are structured such that Amorphic can "include" them on both the serv
 * You export a property, controller in the above example that must match the name of the containing javascript file that is a function that Amorphic will call to create the templates for a particular user session.  This function is passed:
 
   * objectTemplate - a factory object which you can use to create templates (Controller = objectTemplate.create("Controller", {})
-  * getTemplate - a function that you use in place of *requre* to include other template files (var World = getTemplate('./world.js').World)
+ 
+  * uses - a function that you use in place of **require** to include other template files (var World = getTemplate('./world.js').World).  You don't have to worry about circular references.  In fact you can refer to your own file if you have circular references within a file.
   
 * The function returns an object with a property for each template defined in the file (return {Controller: Controller}) You can define and return multiple templates.
  
 This structure allows each session to have it's own private set of templates instances such that when you do new Controller() you can be sure that the object created will be connected to your session. 
 
-### Circular References
+### Circular References (Legacy)
 
-Robust object models often have circular references.  Within a template file this can be accomplished using objectTemplate.mixin:
+Prior to version 1.4 of Amorphic templateMode 'auto' was not supported and a different way of handling circular references was used.  In legacy mode you must return an object with a reference to each template you created in that file.  Within a template file circular references were handled using objectTemplate.mixin:
  
     // foobar.js
     module.exports.foobar = function (objectTemplate, getTemplate) {

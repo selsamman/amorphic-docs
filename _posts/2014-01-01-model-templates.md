@@ -5,7 +5,7 @@ category: model
 order: 0
 ---
 
-# Introduction to Supertype
+## Introduction to Supertype
 
 Supertype is the type system used by Amorphic.  It supports creating function templates that instantiate objects via the Javascript new function
 
@@ -30,7 +30,7 @@ Supertype supports a number of features for creating rich object models
     * Defining validation, parsing and formatting when used with Bindster
     * Values and descriptions for multi-value fields that automatically populate selects and radio buttons when used with Bindster.
 
-# Creating Templates
+## Creating Templates
 
     var <template-name> = <object-template>.create(<create-params>,  <propertiesAndMethods>)
 
@@ -58,15 +58,23 @@ Supertype supports a number of features for creating rich object models
             });
 
 
-* **propertiesAndMethods** - an object that describes each data property or method that will be created with an objected is instantiated from this template.  Each data property has sub-properties that define the characteristics of the property:
+* **propertiesAndMethods** - an object that describes each data property or method that will be created with an objected is instantiated from this template. Each data property has sub-properties that define the property attributes.  
 
-    * **type** the type of the property:
+## Template Data Properties
+
+###Basic Types
+
+The most basic type attributes are:
+
+* **type** the type of the property:
         
-        * **String**, **Number**, **Date**, **Boolean** - primitive Javascript types
-        * **Array** - used to represent a collection of other types.  When **Array** is used, **of** must also be present to define the **type** of the elements of the collection.  The type may be a primitive type or another template (the variable returned from createTemplate).  **Warning:** arrays of primitive types are very inefficient because Amorphic cannot optimize their synchronization between the browser and the server.  It is usually better to define a template even if it has only a single type.  Exceptions are small collections.
-        * **value** - the initial value when object is instantiated
-        
-        Examples:
+* **String**, **Number**, **Date**, **Boolean** - primitive Javascript types
+
+* **Array** - used to represent a collection of other types.  When **Array** is used, **of** must also be present to define the **type** of the elements of the collection.  The type may be a primitive type or another template (the variable returned from createTemplate).  **Warning:** arrays of primitive types are very inefficient because Amorphic cannot optimize their synchronization between the browser and the server.  It is usually better to define a template even if it has only a single type.  Exceptions are small collections.
+
+* **value** - the initial value when object is instantiated
+
+  Examples:
 
             var Child = objectTemplate.create("Child", {
                 name: {type: String, value: ""},
@@ -76,59 +84,102 @@ Supertype supports a number of features for creating rich object models
                 children: {type: Array, of: Child},
                 spouse: {type: Parent}
             });
+### Synchronization Property Attributes        
+In addition there are attributes that relate to how the property will be transported and/or persisted:
         
-        In addition there are properties that relate to how the property will be transported and/or persisted:
+* **isLocal** - when set to true the property is not automatically synchronized between the browser and the server and are never persisted.  Useful to optimize large data elements that are only needed only on one environment.
         
-        * **isLocal** - when set to true the property is not automatically synchronized between the browser and the server and are never persisted.  Useful to optimize large data elements that are only needed only on one environment.
+* **persist** - when set to false the property is never persisted. 
         
-        * **persist** - when set to false the property is never persisted. 
+* **toServer** - when set to false the property will never be transmitted to the server.  This makes the property secure in that no one can tamper with the property on the browser and have it automatically synchronize and thus end up on the server. You only modify such properties in code that executes on the server.
         
-        * **toServer** - when set to false the property will never be transmitted to the server.  This makes the property secure in that no one can tamper with the property on the browser and have it automatically synchronize and thus end up on the server. You only modify such properties in code that executes on the server.
+* **toClient** - when set to false the property will never be transmitted to the browser.  This makes the property private in that it will never be accessible on the client.  An example would be a password which can be set on the browser but never be retransmitted to the browser.
         
-        * **toClient** - when set to false the property will never be transmitted to the browser.  This makes the property private in that it will never be accessible on the client.  An example would be a password which can be set on the browser but never be retransmitted to the browser.
+* **notNull** - when set to true the property may not be saved while it still has a null or undefined value.  
         
-        * **notNull** - when set to true the property may not be saved while it still has a null or undefined value.  
+* **comment** - when use with a database that supports comments (e.g. Postgres), adds the comment string to the schema.
         
-        * **comment** - when use with a database that supports comments (e.g. Postgres), adds the comment string to the schema.
-        
-        * **logChanges** - debug level logging is done when any data is persisted and properties with **logChanges** set to true are logged.
+* **logChanges** - debug level logging is done when any data is persisted and properties with **logChanges** set to true are logged.
           
-        * **fetch** - forces Persistor to fetch the related object (and further descendent objects).  See the Fetch Cascading section in Persist for more details.
+* **fetch** - forces Persistor to fetch the related object (and further descendent objects).  See the Fetch Cascading section in Persist for more details.
+
+### Data Binding Attributes
         
-        These properties are used when data binding objects to a view using Bindster. See the Bindster documentation for details of how they are used.
+Finally these attributes are used when data binding objects to a view using Bindster. See the Bindster documentation for details of how they are used.
         
-        * **validate** - a validation expression applied to any form fields to which this property is bound as if it was applied as a b:validate attribute on the form field. 
+* **validate** - a validation expression applied to any form fields to which this property is bound as if it was applied as a b:validate attribute on the form field. 
         
-        * **format** - a formatting expression applied to any form fields to which this property is bound as if it was applied as a b:format attribute on the form field.
+* **format** - a formatting expression applied to any form fields to which this property is bound as if it was applied as a b:format attribute on the form field.
         
-        * **parse** - a parsing expression applied to any form fields to which this property is bound as if it was applied as a b:parse attribute on the form field.
+* **parse** - a parsing expression applied to any form fields to which this property is bound as if it was applied as a b:parse attribute on the form field.
+
+* **values** - a set of valid values that will automatically fill selects and with the aid of Bindster mappers, radio buttons and checkboxes as well with a set of values.  In the case of selects it is equivalent to using b:fill
          
-        * **rule** - a set of rules that can be querried by the controller to apply validation, parsing or formatting
-      
-    Methods are defined in one of two ways:
+* **descriptions** - goes with **values** to provide descriptions when codes are used for **values**.  In a select it is equivalent to b:using
+          
+* **rule** - a set of rules that can be querried by the controller to apply validation, parsing or formatting
+
+**Note:**  A future version of Amorphic will support validation and values when data is synchronized to the server to provide additional security against manipulation of applications via the Javascript console.
+
+## Template Methods
+
+Along with data properties, methods may be freely intermixed.  They are defined in one of two ways:
     
         <property-name>: function () {}
         
-    This is used for code that can be executed either in the browser or on the server.  The function is executed in the same environment as the caller.
+Used for code that can be executed either in the browser or on the server.  The function is executed in the same environment as the caller.
     
         <propert-name>: <function-properties>
         
-    This is used when you want to force execution on what environment or the other.  Amorphic will automatically make the call across the wire to the other environment, first synchronizing all objects in the target environment with those in the calling environment.  **<function-properties>** is an object with properties that defines which environment the method will be executed in.  It has these properties:
+Used when you want to force execution on what environment or the other.  Amorphic will automatically make the call across the wire to the other environment, first synchronizing all objects in the target environment with those in the calling environment.  **<function-properties>** is an object with properties that defines which environment the method will be executed in.  It has these properties:
         
-    * **on** - defines where the code will reside:
+* **on** - defines where the code will reside:
      
-        * **'client'** - The code lives in the browser.  This is useful if you need to call code in the browser from code that runs on the server.  In general the pattern of performing code that must be execute in the browser **after** calling a method that executes on the server is preferred.
+* **'client'** - The code lives in the browser.  This is useful if you need to call code in the browser from code that runs on the server.  In general the pattern of performing code that must be execute in the browser **after** calling a method that executes on the server is preferred.
          
-        * **'server'** - The code lives on the server and is only executed on the server.
+* **'server'** - The code lives on the server and is only executed on the server.
          
-    * **body** - A function that will be executed
+* **body** - A function that will be executed
+
+* **validate** - A function called in the case where code in the browser calls code in the server and the browser code wishes to validate the input before making the call and throw an error or otherwise use the data binding mechanism's error handling     
     
-    Examples:
-# Composing Templates
+## Composing Templates
 
-# Relationships
+There are generally two ways to compose (e.g. combine templates):
 
-# Template Introspection
+* **mixin** - Include data properties and methods from another template.  This allows you to group properties by function and then assemble them into larger templates.  The consuming code need not know the origin of the properties.
+
+* **references** - Include a reference to other templates in the type attribute of a data property.  In this case references to the properties of referenced templates always use the property name of the reference (e.g. customer.policy.policyNumber).  At present references are implemented by the persistence layer as database references though they use joins and/or sub-documents to maximize performance
+
+You can mixin either entire templates:
+
+    <template-name>.mixin(<template-name>)
+    
+or individual properties:
+    
+    <template-name>.mixin(<propertiesAndMethods>);
+    
+Example:
+    
+    var Name = objectTemplate.create("Name", {
+        firstName: {type: String},
+        middleName: {type: String}
+        lastName: {type: String}});
+        
+    Employee.mixin(Name);
+    Customer.mixin(Name);
+## Projections
+A future version of Amorphic will have support for creating sub-sets of existing templates.  This is useful when you want to have a very efficient way to query only part of table. 
+
+    var PartialPolicy = Policy.project("PartialPolicy", 
+        ['policyNumber', 'status', 'workflowState']);
+          
+The advantage of using project over just simply creating a duplicate template is that you don't have to supply all of the attributes for the properties.    
+
+# Common Template Properties & Methods
+
+Templates have special methods, described under [Persistence]({{site.baseurl }}{% link _posts/2014-01-01-model-persist.md %})  for managing persistence such as fetch and fetchById but also have thi
+
 
 # Common Object Properties
 

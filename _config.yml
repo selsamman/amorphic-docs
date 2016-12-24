@@ -35,5 +35,6 @@ future: true
 # Exclude non-site files
 exclude: ['bin', 'README.md']
 
-# Use the redcarpet Markdown renderer
 markdown: kramdown
+
+highlighter: rouge

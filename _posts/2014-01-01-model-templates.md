@@ -62,7 +62,7 @@ Supertype supports a number of features for creating rich object models
 
 ## Template Data Properties
 
-###Basic Types
+### Basic Types
 
 The most basic type attributes are:
 
@@ -142,7 +142,21 @@ Used when you want to force execution on what environment or the other.  Amorphi
 * **body** - A function that will be executed
 
 * **validate** - A function called in the case where code in the browser calls code in the server and the browser code wishes to validate the input before making the call and throw an error or otherwise use the data binding mechanism's error handling     
+## Extending Templates
+
+Supertype supports classical inheritance by using:
+
+    var <extended-template-name> = <base-template-name>.>.create(<create-params>,  <propertiesAndMethods>)
     
+* **extended-template-name** is the name of the new template to be created based on the **base-template-name**
+* **create-params** is the same as for <object-template>.create and generally is just **extended-template-name**.
+* **propertiesAndMethods** is the same as for <object-template.create> and is used to define additional properties or to override attributes of existing properties.  It can also provide additional methods or override existing methods. 
+
+It should be noted that templates are standard Javascript functions created using the function prototype and as such support the **instanceof** operator such that:
+ 
+    var Foo = objectTemplate.create("Foo", {});
+    var ExtendedFoo = Foo.extend("ExtendedFoo", {});
+    ExtendedFoo instanceof Foo // would be true
 ## Composing Templates
 
 There are generally two ways to compose (e.g. combine templates):
@@ -176,11 +190,27 @@ A future version of Amorphic will have support for creating sub-sets of existing
           
 The advantage of using project over just simply creating a duplicate template is that you don't have to supply all of the attributes for the properties.    
 
-# Common Template Properties & Methods
-
-Templates have special methods, described under [Persistence]({{site.baseurl }}{% link _posts/2014-01-01-model-persist.md %})  for managing persistence such as fetch and fetchById but also have thi
-
-
 # Common Object Properties
 
-# Things to Note
+All objects created from Supertype templates have these common methods:
+
+* **.toJSONString()** - converts the objects and related objects into a JSON string resolving circular references.  It can be restored using <template-name>.fromJSONString(<string>).  This round trip should be used with caution because it generates non-standard object id's that cannot be synchronized between client and server.  There are however certain times when, for example, you want to export and import object data that this can be useful.
+
+* **.\__values\__(<property-name>)** - returns the set of values defined as attributes of the property when the template was created.
+
+* **.\__descriptions\__(<property-name>)** - returns the set of descriptions as an object with a property for each value as defined in the attributes of the property when the template was created.  For example:
+ 
+       customer.__descriptions__('status')['R']  // Might return 'Registered'
+       
+* **.\__prop\__(<property-name>)** - returns the attributes of the property as defined when it's templates was created.
+       
+* **.createCopy(<callback>) - creates a deep copy of the object giving you precise control of how referenced objects are handled by supplying a callback that is called as each referenced object is to be copied.  The callback determines how the object will be copied.  The callback has these arguments:
+  * **1 - \<parent-object>** - the object containing the property to be copied.
+  * **2 - \<property-name>** - the name of the property to be copied
+  * **3 - \<template>** - the template to be cloned from the **of** or **type** attribute of the property.  
+  
+  The callback may return:
+  * **undefined** - do not clone the referenced object and set the reference to null.
+  * **\<object>** - returning a templated object means that that object will be used rather than cloning.  The properties of the returned object will continue to be copied.
+  * **\[object]** - returning an array with one object in the first position indicates that the object will be used rather than cloning but that the properties of the object will not be traversed and copied.  This is useful when you want to connect the reference to an existing object.
+  * **null** - clone the referenced object and copy into it the properties of the referenced object 

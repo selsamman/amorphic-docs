@@ -142,6 +142,7 @@ Used when you want to force execution on what environment or the other.  Amorphi
 * **body** - A function that will be executed
 
 * **validate** - A function called in the case where code in the browser calls code in the server and the browser code wishes to validate the input before making the call and throw an error or otherwise use the data binding mechanism's error handling     
+
 ## Extending Templates
 
 Supertype supports classical inheritance by using:
@@ -157,6 +158,7 @@ It should be noted that templates are standard Javascript functions created usin
     var Foo = objectTemplate.create("Foo", {});
     var ExtendedFoo = Foo.extend("ExtendedFoo", {});
     ExtendedFoo instanceof Foo // would be true
+
 ## Composing Templates
 
 There are generally two ways to compose (e.g. combine templates):
@@ -196,15 +198,15 @@ All objects created from Supertype templates have these common methods:
 
 * **.toJSONString()** - converts the objects and related objects into a JSON string resolving circular references.  It can be restored using <template-name>.fromJSONString(<string>).  This round trip should be used with caution because it generates non-standard object id's that cannot be synchronized between client and server.  There are however certain times when, for example, you want to export and import object data that this can be useful.
 
-* **.\__values\__(<property-name>)** - returns the set of values defined as attributes of the property when the template was created.
+* **.\_\_values\_\_(\<property-name>)** - returns the set of values defined as attributes of the property when the template was created.
 
-* **.\__descriptions\__(<property-name>)** - returns the set of descriptions as an object with a property for each value as defined in the attributes of the property when the template was created.  For example:
+* **.\_\_descriptions\_\_(\<property-name>)** - returns the set of descriptions as an object with a property for each value as defined in the attributes of the property when the template was created.  For example:
  
        customer.__descriptions__('status')['R']  // Might return 'Registered'
        
-* **.\__prop\__(<property-name>)** - returns the attributes of the property as defined when it's templates was created.
+* **.\_\_prop\_\_(\<property-name>)** - returns the attributes of the property as defined when it's templates was created.
        
-* **.createCopy(<callback>) - creates a deep copy of the object giving you precise control of how referenced objects are handled by supplying a callback that is called as each referenced object is to be copied.  The callback determines how the object will be copied.  The callback has these arguments:
+* **.createCopy(\<callback\>) - creates a deep copy of the object giving you precise control of how referenced objects are handled by supplying a callback that is called as each referenced object is to be copied.  The callback determines how the object will be copied.  The callback has these arguments:
   * **1 - \<parent-object>** - the object containing the property to be copied.
   * **2 - \<property-name>** - the name of the property to be copied
   * **3 - \<template>** - the template to be cloned from the **of** or **type** attribute of the property.  

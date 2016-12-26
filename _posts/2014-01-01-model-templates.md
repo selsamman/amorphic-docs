@@ -212,7 +212,11 @@ All objects created from Supertype templates have these common methods:
   * **3 - \<template>** - the template to be cloned from the **of** or **type** attribute of the property.  
   
   The callback may return:
+  
   * **undefined** - do not clone the referenced object and set the reference to null.
+  
   * **\<object>** - returning a templated object means that that object will be used rather than cloning.  The properties of the returned object will continue to be copied.
+  
   * **\[object]** - returning an array with one object in the first position indicates that the object will be used rather than cloning but that the properties of the object will not be traversed and copied.  This is useful when you want to connect the reference to an existing object.
+  
   * **null** - clone the referenced object and copy into it the properties of the referenced object 

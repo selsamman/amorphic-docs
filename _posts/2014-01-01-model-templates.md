@@ -192,7 +192,7 @@ A future version of Amorphic will have support for creating sub-sets of existing
           
 The advantage of using project over just simply creating a duplicate template is that you don't have to supply all of the attributes for the properties.    
 
-# Common Object Properties
+## Common Object Properties
 
 All objects created from Supertype templates have these common methods:
 

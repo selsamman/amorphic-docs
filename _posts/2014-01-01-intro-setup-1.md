@@ -33,16 +33,27 @@ Note that **preSessionCallback** and **postSessionCallback** not normally needed
 ### Global config.json
 
 In the root of your project there is a **config.json** file which represents the "global" configuration for all applications:
+
 * **conflictMode** - Whether to data synchronization vs only message synchronization is enabled.  Defaults to 'soft'.  Every data value transmitted when synchronizing between the browser and server is sent in two parts - the expected current value and the new value.  If the expected current value is incorrect a warning is generated (conflictMode 'soft') or an error is generated (conflictMode 'hard')
+
 * **compressSession** if set to true session data is compressd before being serialized.  This makes storage smaller but adds time to each server call
+
 * **compressXHR** if set to true the server responses are compressed
+
 * **sourceMode** Whether source files are to minified 'prod' or left as is 'debug'
+
 * **templateMode** When set to 'auto' templates are defined in a fashion where circular references are handles automatically.
+
 * **port** - the port you want to listen on
+
 * **sessionSeconds** - how long before a session expires (in seconds)
+
 * **objectCacheSeconds** - how long to keep your objects cached
+
 * **sessionSecret** - a random string for hashing sessions
+
 * **applications** - list your applications and their root directories here
+
 * **application** - the default application
 
 Anything you specify in config.json can also be specified as a starting parameter to node.js

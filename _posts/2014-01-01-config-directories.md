@@ -1,6 +1,6 @@
 ---
 layout: page
-title: "directories"
+title: "Directories"
 category: config
 date: 2014-01-01 00:00:00
 order: 1

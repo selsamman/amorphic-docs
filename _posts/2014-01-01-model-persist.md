@@ -123,7 +123,7 @@ Knowing what to save does involve some knowledge of the document/sub-document re
 
 Data is read from the database with the fetch() method on the template.
 
-    <template>.fetchById(query, {options}).then(function(result) {});
+    <template>.fetchById(id, {options}).then(function(result) {});
 
     <template>.fetch(query, {options}).then(function(result) {});
 
@@ -169,6 +169,8 @@ Examples:
  
     customer.fetch({fetch: {policies: {owner: true}}}).then (....)
     
+### Delete
+
 ### Fetch Cascading
 
 When you have a reference to another object in the schema you can have Persistor automatically fetch that reference even if it is another document by applying the **fetch** option in one of these three ways:

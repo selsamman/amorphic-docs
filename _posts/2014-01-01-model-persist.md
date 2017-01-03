@@ -125,7 +125,7 @@ Data is read from the database with the fetch() method on the template.
 
     <template>.fetchById(id, {options}).then(function(result) {});
 
-    <template>.fetch(query, {options}).then(function(result) {});
+    <template>.fetchByQuery(query, {options}).then(function(result) {});
 
 The parameters are:
 
@@ -151,7 +151,7 @@ The parameters are:
 
 Examples:
 
-    Customer.fetch({query: {email: this.email}}).then(function (customers) {
+    Customer.fetchByQuery({query: {email: this.email}}).then(function (customers) {
         console.log(customers[0].firstName);
     });
 
@@ -170,6 +170,15 @@ Examples:
     customer.fetch({fetch: {policies: {owner: true}}}).then (....)
     
 ### Delete
+
+Data is deleted from the database with the delete() method on the template.
+
+    <template>.deleteById(id, {options}).then(function() {});
+
+    <template>.deleteByQuery(query, {options}).then(function() {});
+
+The id and query is the same as for **fetchById** and **fetchByQuery**.  The only parameter for options that is permitted is **logger**
+
 
 ### Fetch Cascading
 
@@ -240,6 +249,7 @@ MongoDB does not have a concept of transactions and it's atomicity is limited to
  To begin a named transaction 
  
     var transaction = objectTemplate.beginTransaction();
+    
  
  To begin a default transaction
     
@@ -247,4 +257,7 @@ MongoDB does not have a concept of transactions and it's atomicity is limited to
     
 To commit the transaction
 
-    objectTemplate.commit(transaction).then({post commit code});
+    objectTemplate.commit(options).then({post commit code});
+    
+The only options permitted are **transaction** and **logger**
+     

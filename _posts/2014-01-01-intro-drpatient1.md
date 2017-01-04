@@ -10,13 +10,10 @@ order: 1
 
 This is simple application that demonstrates
 
-* Simple data model with various relationships between objects such as
-    * One-to-One
-    * One-to-Many
-* Seamless synchronization between the browser and the server
+* A simple data model that illustrates relationships between objects
 * Data binding from the model to the HTML view
-* A simple controller to orchestrate it all  
-  
+* How to call code on the server
+
 ## How to set it up
 
 * Clone or checkout this project from github
@@ -31,7 +28,7 @@ This is simple application that demonstrates
         
 * Start the application
 
-        nodejs app.js --port 30001
+        node app.js --port 30001
 
 * Go to the local web page in your browser
 
@@ -64,7 +61,7 @@ This is simple application that demonstrates
 
 ## What just happened?
 
-### index.html
+### The View
 
 Let's first have a look at **apps/drpatient/public/index.html**.  It contains:
 

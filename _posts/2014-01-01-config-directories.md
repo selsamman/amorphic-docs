@@ -56,9 +56,17 @@ In each application directory there is config.json file to configure each applic
 
 The key parts are:
 
-* **dbPath** - the connection string for MongoDB.  Note that this will be overridden by the global configuration property xxx_dbPath which means it can be specified as a node parameter (or environment variable) in production.
+* **dbdriver** - The database driver.  Defaults to mongo but can be set to **knex**, the underlying middleware for Postgres. 
 
-* **dbName** - the MongoDB database name which can also be overridden as xxx_dbName
+* **dbtype** - The type of database (only needed if **dbdriver** is set to **knex**) - Should be set to **pg** for knex/Postgres support.  In theory any database supported by knex (http://knexjs.org/) is supported though testing has only been done with Postgres. 
+
+* **dbpath** - The hostname for the database.  When running your database locally for testing purposes set this to **127.0.0.1** 
+
+* **dbname** - The database name to connect to  
+
+* **dbuser** - A user name if the database requires authentication. 
+
+* **dbpassword** A password if the database requires a password
 
 * **createControllerFor** - Because Amorphic needs to create a controller as the backbone of any browser session you may not always want to do this if the user is simply visiting static marketing pages. createControllerFor is a RegEx string that is matched against the URL to determine if a controller should be created.  Generally you will make it something that will match everything (like .*) if you always want to have a session or something that will match nothing (like #) if you don't want to create a session until the broswer first makes an explicit request of the server.
 

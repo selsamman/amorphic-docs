@@ -59,7 +59,7 @@ This is simple application that demonstrates
 
 * Refresh the browser window (or close it and reopen the same URL).  You will see that all your data was saved.
 
-## What just happened?
+## Under the Covers
 
 ### The View
 
@@ -147,7 +147,7 @@ All amorphic application files are organized into templates.  Templates are defi
 * **uses** a function to declare usage of other templates.  **uses** is passed the file name of the template and the template name itself
     
     
-In this case we declare our usage of a stock base controller and the various templates that consitute the principal entities for our demo which is known as the "model".  Finally we create our **Controller** template by extending the base controller.  This gives our controller all of the properties and methods of the base controller and let's us add our own properties and methods.  A few of these we just excercised in our demo:
+Within this initialization function we declare our usage of a stock base controller (**BaseController**) and the various templates that we need for our "model" (**Doctor**, **.  Finally we create our **Controller** template by extending the base controller.  This gives our controller all of the properties and methods of the base controller and let's us add our own properties and methods.  A few of these we just excercised in our demo:
     
    doctorName:     {type: String},
      
@@ -277,4 +277,120 @@ But how did their values get populated?
    * Since this is an array of objects you need to specify the particular property of that object which will be used as the select option keys  (value attribute of the option tag).  This is done with the **b:fill-key** attribute which in this case is set to the **__id__**.  The **\\** characters are used to escape handling of the **__xxx__** pattern which would otheriwse have special meaning.  Every object has a property **__id__** which uniquely identifies it so the list of options will have unique values.
     * Similarly you also need to specify the text of the option tag with the **fill-value** attribute.  In this case it is the **name** property of the patient object.
     * Normally when you select a value the data binding layer will simply populate the bound field (in this case **appPatient** with the selected key (value attribute of the option tag).  However when the value is **__id__** the data binding layer wills substitute the actual object.  So selecting the patient in the drop-down actually populates **appDoctor** with the object that represents that doctor.
+    
+## Making the App Persistent
+    
+There are a hand full of things we need to do to make the application save to and retrieve from a database.  In this tutorial we will use MongoDB first and then convert to Postgres.  The only difference will be the starting parameters.  For Mongo you would use this:
+   
+    node app.js --port 3001 --dbname drpatient --dbpath mongodb://localhost:27017/
+    
+This assumes Mongo is installed locally on the standard port 27017 and requires not authentication.  The database name would be **drPatient**.  To use Postgres you would use this to start the application:
+    
+    --port 3001 --dbdriver knex --dbtype pg --dbpath 127.0.0.1 --dbname drpatient  --dbuser nodejs --dbpassword nodejs
+    
+This assumes that you:
+  * Install Postgres locally on the default port
+  * Create a database called drpatient
+  * Assign the database a user name of **nodejs** and a password of **nodejs**
+  * Create the tables and columns (see the sections that follow for how to do that automatically)
+   
+### The Schema
+   
+To persist your objects you must create a schema that tells Amorphic where the objects are to be stored and how they are to be linked together.  This is contained in schema.json and the demo already comes with a schema to make it easier to get started with persisting.  The schema looks like this:
+    
+    {
+      "Doctor": {
+        "documentOf" : "Doctor",
+        "children": {
+          "appointments":    	{"id":"doctor_id"}
+        }
+      },
+      "Patient": {
+        "documentOf" : "Patient",
+        "children": {
+          "appointments":       {"id":"patient_id"}
+        }
+      },
+      "Appointment": {
+        "documentOf" : "Appointment",
+        "parents": {
+          "doctor":      		{"id": "doctor_id"},
+          "patient":      	{"id": "patient_id"}
+        }
+      }
+    }
+ The important parts are:
+ * The top level declarations for each Template, **Doctor**, **Patient** and **Appointment**
+ * The definition of a document name for MongoDB.  There is also a **tableName** for Postgres, but **documentOf** will be used if no **tableName** is specified allowing the schema to do double-duty.
+ * The **children** declaration which is needed when you have an array of templates.  Each property in **children** should correspond to the property name in the template having an array of templates.  For each reference you need an **id** property which names an extra column in the child table that will be added to maintain the relationship.
+ * The **parents** declaration which is needed when you have references (non-array) to templates.  For each property you reference you need an **id** property which names the extra column in the table used to maintain the linkage.
+
+### Saving objects
+    
+In each of the methods in the controller you need to add persist call to the object being created:
+    
+        addPatient: {on: "server", body: function () {
+                var patient = new Patient(this.patientName);
+                this.patients.push(patient);
+                this.patientName = "";
+                patient.persist();
+            }},
+    
+            addDoctor:  {on: "server", body: function () {
+                var doctor = new Doctor(this.doctorName)
+                this.doctors.push(doctor)
+                this.doctorName = "";
+                doctor.persist();
+            }},
+    
+            addAppointment:  {on: "server", body: function () {
+                var appointment = (new Appointment(this.appTime, this.appDoctor, this.appPatient));
+                this.appTime = null;
+                appointment.persist();
+            }},
+
+You also need to read the list of patients and doctors from the database.  There are several ways to do that.  They most "dynamic" way to do this is request them when the page renders.  To do this replace the reference to the arrays of doctors and patients with doctorsGet() and patientsGet() respectively:
            
+     <b:iterate on="doctorsGet()" with="doctor">
+        <p class="bg-success"><a href="#" b:bind="doctor.name" b:onclick="appDoctor = doctor"></a></p>
+     </b:iterate>
+
+and 
+
+     <b:iterate on="patientsGet()" with="patient">
+        <p class="bg-success" b:bind="patient.name"></p>
+     </b:iterate>
+
+Amorphic has mechanism that used within the model (not the controller) where it will automatically generate an xxxGet method for every property that references another template.  It also generates the appropriate server methods xxxFetch that xxxGet will call which will retrieve the related objects.  This let's lazily load related objects as the HTML needs them.  Behind the scenes this is what happens:
+* When the data binding layer starts the iteration it calls xxxGet().  xxxGet() determines if the data has already been fetched.  There are three possible situations:
+  * The data could have already been fetched and so the data is just returned
+  * This could be the first reference to the data and so the xxxFetch() method is called on the server to retrieve the data.  In the mean time an empty array is returned so nothing is iterated on (empty list)
+  * The data is not available yet but he xxxFetch() method has already been called.  In that case also an empty array is called.
+* Once xxxFetch is complete, Amorphic will re-render the HTML.  This time the data will be available when calling xxxGet and the iterate block will fill
+* In order to manage the "state" of whether data has been fetched or is in the process of being fetched an extra property xxxPersistor is automatically added.  It contains two properties that xxxGet manages:
+  * **isFetching** set to true once the xxxFetch has been called and is reset when the data is finally fetched
+  * **isFetched** indicates that the data has been fetched.
+
+This works fine between objects that are part of the model (e.g. where the referencing object is in the schema) but does not work automatically with Controllers and so you need add doctorsFetch and patientsFetch method yourself and also add the autoFetch: true to the doctors and patients array so the xxxGet functions will automatically be added:
+
+        doctors:        {type: Array, of: Doctor, value: [], autoFetch: true},
+        doctorsFetch:   {on: "server", body: function () {
+            return Doctor.fetchByQuery({}).then(function (doctors) {
+                this.doctors = doctors;
+                this.doctorsPersistor={isFetched: true, isFetching: false};
+                return doctors;
+            }.bind(this));
+        }},
+ 
+ and
+ 
+        patients:       {type: Array, of: Patient, value: [], autoFetch: true},
+        patientsFetch:   {on: "server", body: function () {
+            return Patient.fetchByQuery().then(function (patients) {
+                this.patients = patients;
+                this.patientsPeristor={isFetched: true, isFetching: false};
+                return patients;
+            }.bind(this));
+        }},
+
+Notice that the xxxFetch methods have to set the xxxPersistor property to indicate that the data has been fetched.

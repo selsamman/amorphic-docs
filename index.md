@@ -16,9 +16,9 @@ The goal of Amorphic is to let you focus on the logic of your application with m
 
 ### How it works
 
-You define objects that live on both in the browser and on the server as part of user's session with the server.  Your object methods are defined either as executing in the browser or on the server.  You may call methods on the server from within methods on the browser. When you do so all properties are synchronized and your call is executed on the server. The upshot is that you choose where to execute your code based criteria such as speed, proximity to persistent storage or security but the structure and coding style does not have to vary (except for access to server only resources).
+You define objects that live on both in the browser and on the server as part of user's session with the server.  Your object methods are defined either as executing in the browser or on the server.  You may call methods on the server from within methods on the browser. When you do so all properties are synchronized and your call is executed on the server. The upshot is that you choose where to execute your code based on criteria such as speed, proximity to persistent storage or security but the structure and coding style does not have to vary (except for access to server only resources).
 
-To keep track of all this you need to define your objects using Amorphic's templating system which lets you define object, their properties and relationships to other objects.  As a bonus this definition also serves as the core a database schema that is lightly augmented with an external schema file to take care of data base dependent considerations like object to table mappings and foreign keys.  You can save and and retrieve objects and their relationships to any depth with a simple call with full ACID support if Postgres is chosen as the database.
+To keep track of all this you need to define your objects using Amorphic's templating system which lets you define object, their properties and relationships to other objects.  As a bonus this definition also serves as the core to a database schema that is lightly augmented with an external schema file to take care of data base dependent considerations like object to table mappings and foreign keys.  You can save and retrieve objects and their relationships to any depth with a simple call with full ACID support if Postgres is chosen as the database.
 
 Finally mapping your objects to the screen uses data-binding that is analogous to Angular except that it has tighter integration with your object definitions.  For example you can define values and descriptions for a multi-valued property as part of your object template, bind that to a select control and it will automatically populate the options.
 ### Model, View, Controller
@@ -35,10 +35,10 @@ Amorphic is built on a model, view, controller paradigm
 
 These Amorphic components support this structure:
 
-* **Supertype** - is the type system that supports rich definitions of objects, properties and their relationships with support for classical inheritence.  The fact that Amorphic has detailed knowledge of your data is what allows it to synchronize between the browser and the server and persist your data.
+* **Supertype** - is the type system that supports rich definitions of objects, properties and their relationships with support for classical inheritance.  The fact that Amorphic has detailed knowledge of your data is what allows it to synchronize between the browser and the server and persist your data.
 
 * **Semotus** - Is the transport and synchronization mechanism between the browser and the server
 
 * **Bindster** - Is the data binding and templating system that includes routing.
 
-* **Persistor** - Is the Object Relational Mapper (or non-relational in the case of MongoDB) that persists your data and manages it's retrieval. 
+* **Persistor** - Is the Object Relational Mapper (or non-relational in the case of MongoDB) that persists your data and manages it's retrieval.
